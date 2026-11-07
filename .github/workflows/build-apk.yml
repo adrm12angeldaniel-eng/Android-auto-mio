@@ -1,21 +1,40 @@
-name: Android CI
+name: Convertir HTML a APK
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest 
-
+  build-apk:
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout del código
-      uses: actions/checkout@v4
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
 
-    - name: Configurar Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-    - name: Compilar APK
-      run: ./gradlew assembleDebug
-      
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Instalar Cordova y crear proyecto
+        run: |
+          npm install -g cordova
+          cordova create app_cordova com.mihtml.app MiAppHTML
+          # Copiar tus archivos HTML a la carpeta del proyecto
+          cp -r * app_cordova/www/ || true
+          cd app_cordova
+          cordova platform add android@12.0.0
+          cordova build android --debug
+
+      - name: Subir APK como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: MiApp-APK
+          path: app_cordova/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          
