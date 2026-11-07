@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honda Sport Head Unit Launcher</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #08080a;
+            color: #ffffff;
+            user-select: none;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Carbon Fiber Texture Background */
+        .carbon-bg {
+            background-color: #0d0e12;
+            background-image: 
+                radial-gradient(black 15%, transparent 16%),
+                radial-gradient(black 15%, transparent 16%);
+            background-size: 12px 12px;
+            background-position: 0 0, 6px 6px;
+        }
+
+        /* Metallic Glows & Red Accent Borders */
+        .red-glow {
+            box-shadow: 0 0 15px rgba(229, 57, 53, 0.4), inset 0 0 10px rgba(229, 57, 53, 0.2);
+        }
+
+        .red-border-glow {
+            border: 1px solid rgba(229, 57, 53, 0.6);
+            box-shadow: 0 0 10px rgba(229, 57, 53, 0.3);
+        }
+
+        /* Dial Gauge Styling */
+        .gauge-ring {
+            background: radial-gradient(circle, rgba(20,22,28,0.9) 60%, rgba(35,38,48,1) 85%, rgba(229,57,53,0.4) 100%);
+            border: 3px solid #222630;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        .needle {
+            transition: transform 0.1s ease-out;
+            transform-origin: bottom center;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e53935;
+            border-radius: 4px;
+        }
+
+        /* Modal Blur */
+        .backdrop-blur-md {
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between p-2 carbon-bg select-none">
+
+    <!-- TOP TELEMETRY BAR -->
+    <header class="w-full h-10 bg-black/80 border-b border-red-900/50 flex items-center justify-between px-4 rounded-t-lg backdrop-blur-sm z-20">
+        <!-- Left Brand & Status -->
+        <div class="flex items-center space-x-4">
+            <button onclick="openModal('appsModal')" class="hover:opacity-80 transition">
+                <i class="fa-solid fa-house text-gray-400 hover:text-white"></i>
+            </button>
+            <button onclick="openModal('appsModal')" class="hover:opacity-80 transition">
+                <i class="fa-solid fa-border-all text-gray-400 hover:text-white"></i>
+            </button>
+            <div class="flex items-center space-x-2 border-l border-gray-800 pl-3">
+                <span class="text-red-600 font-extrabold tracking-wider font-orbitron text-sm">HONDA</span>
+                <span class="text-xs font-semibold text-gray-300 tracking-widest">CIVIC <span class="text-red-500 italic">TYPE R</span></span>
+            </div>
+        </div>
+
+        <!-- Center Telemetry Info -->
+        <div class="flex items-center space-x-6 text-xs font-orbitron">
+            <div class="flex items-center space-x-1">
+                <i class="fa-solid fa-gas-pump text-amber-500"></i>
+                <span class="text-gray-400">Consumo:</span>
+                <span class="text-white font-bold" id="valFuel">0.00 L</span>
+            </div>
+            <div class="flex items-center space-x-1">
+                <i class="fa-solid fa-coins text-yellow-400"></i>
+                <span class="text-gray-400">Gasto:</span>
+                <span class="text-white font-bold">$0.00</span>
+            </div>
+            <div class="flex items-center space-x-1">
+                <i class="fa-solid fa-gauge-high text-cyan-400"></i>
+                <span class="text-gray-400">Rend.:</span>
+                <span class="text-white font-bold">0.0 km/L</span>
+            </div>
+        </div>
+
+        <!-- Right System Indicators -->
+        <div class="flex items-center space-x-4 text-xs font-orbitron">
+            <div class="flex items-center space-x-1 text-amber-400">
+                <i class="fa-solid fa-temperature-three-quarters"></i>
+                <span>32°C</span>
+            </div>
+            <div class="flex items-center space-x-1 text-green-400">
+                <i class="fa-solid fa-car-battery"></i>
+                <span id="valVoltage">11.9 V</span>
+            </div>
+            <i class="fa-solid fa-bluetooth-b text-blue-500"></i>
+            <i class="fa-solid fa-signal text-gray-300"></i>
+            <span id="clock" class="text-base font-bold text-white tracking-widest pl-2">14:47</span>
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD CONTENT GRID -->
+    <main class="flex-1 grid grid-cols-12 gap-3 p-2 relative overflow-hidden">
+
+        <!-- LEFT COLUMN: GAUGES (SPEEDOMETER & TACHOMETER) -->
+        <section class="col-span-3 flex flex-col justify-between items-center space-y-2">
+            
+            <!-- SPEEDOMETER -->
+            <div class="relative w-44 h-44 sm:w-48 sm:h-48 gauge-ring rounded-full flex items-center justify-center p-2">
+                <!-- SVG Dial Marks -->
+                <svg class="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" stroke="#1f2430" stroke-width="6" fill="none" />
+                    <circle id="speedArc" cx="50" cy="50" r="42" stroke="#e53935" stroke-width="6" stroke-dasharray="264" stroke-dashoffset="264" fill="none" class="transition-all duration-150" />
+                </svg>
+
+                <!-- Gauge Numbers -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="absolute top-4 text-[10px] text-gray-400 font-orbitron">120</span>
+                    <span class="absolute top-7 right-7 text-[10px] text-gray-400 font-orbitron">180</span>
+                    <span class="absolute right-3 text-[10px] text-gray-400 font-orbitron">220</span>
+                    <span class="absolute bottom-6 right-8 text-[10px] text-gray-400 font-orbitron">240</span>
+                    <span class="absolute left-3 text-[10px] text-gray-400 font-orbitron">40</span>
+                    <span class="absolute top-7 left-7 text-[10px] text-gray-400 font-orbitron">80</span>
+                </div>
+
+                <!-- Digital Readout Center -->
+                <div class="z-10 text-center flex flex-col items-center">
+                    <span id="speedDisplay" class="text-4xl font-extrabold font-orbitron text-white tracking-tighter leading-none">0</span>
+                    <span class="text-[10px] text-red-500 font-semibold tracking-widest mt-1">km/h</span>
+                </div>
+            </div>
+
+            <!-- TACHOMETER (RPM) -->
+            <div class="relative w-36 h-36 sm:w-40 sm:h-40 gauge-ring rounded-full flex items-center justify-center p-2">
+                <svg class="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" stroke="#1f2430" stroke-width="5" fill="none" />
+                    <circle id="rpmArc" cx="50" cy="50" r="42" stroke="#dc2626" stroke-width="5" stroke-dasharray="264" stroke-dashoffset="264" fill="none" class="transition-all duration-150" />
+                </svg>
+
+                <div class="z-10 text-center flex flex-col items-center">
+                    <span class="text-[9px] text-gray-400 font-orbitron">x1000 RPM</span>
+                    <span id="rpmDisplay" class="text-2xl font-bold font-orbitron text-white">0.0</span>
+                    <span class="text-[9px] text-red-500 font-bold">RPM</span>
+                </div>
+            </div>
+
+            <!-- ENGINE TELEMETRY MINI CARDS -->
+            <div class="w-full grid grid-cols-2 gap-2 text-[11px]">
+                <div class="bg-black/60 border border-gray-800 rounded p-1.5 flex items-center space-x-2">
+                    <i class="fa-solid fa-temperature-high text-cyan-400 text-sm"></i>
+                    <div>
+                        <div class="text-gray-400 text-[9px]">Temp. Motor</div>
+                        <div class="font-bold font-orbitron text-white">88 °C</div>
+                    </div>
+                </div>
+                <div class="bg-black/60 border border-gray-800 rounded p-1.5 flex items-center space-x-2">
+                    <i class="fa-solid fa-car-battery text-green-400 text-sm"></i>
+                    <div>
+                        <div class="text-gray-400 text-[9px]">Voltaje Batería</div>
+                        <div class="font-bold font-orbitron text-green-400">12.0 V</div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- CENTER COLUMN: CAR VIEW & TUNING / DRIVING SIMULATOR CONTROLS -->
+        <section class="col-span-5 flex flex-col justify-between items-center relative px-2">
+            
+            <!-- Mugen Logo & Status Banner -->
+            <div class="w-full flex justify-between items-center px-4 pt-1">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-road text-red-600"></i>
+                    <span class="text-xs font-orbitron text-gray-300">Distancia: <b class="text-white">0.0 km</b></span>
+                </div>
+                <!-- Mugen Emblem -->
+                <div class="text-right">
+                    <span class="font-black italic text-lg tracking-widest text-gray-200 font-orbitron">無限 MUGEN</span>
+                </div>
+            </div>
+
+            <!-- VEHICLE CAR DISPLAY & IMAGE UPLOADER -->
+            <div class="relative w-full flex-1 flex items-center justify-center my-2 group">
+                <!-- Red Glow Aura behind car -->
+                <div class="absolute w-64 h-32 bg-red-600/20 blur-2xl rounded-full pointer-events-none"></div>
+
+                <!-- Active Car Image -->
+                <img id="carImage" 
+                     src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80" 
+                     alt="Honda Civic Type R" 
+                     class="max-h-52 object-contain filter drop-shadow-[0_10px_15px_rgba(0,0,0,0.9)] transition-all duration-300 group-hover:scale-105"
+                     onerror="this.src='https://via.placeholder.com/600x300/101015/e53935?text=Honda+Civic+Type+R'" />
+
+                <!-- Edit Image Overlay Button -->
+                <label for="carFileInput" class="absolute bottom-2 right-2 bg-black/80 hover:bg-red-600 border border-red-500/50 text-white text-xs px-3 py-1.5 rounded-full cursor-pointer flex items-center space-x-2 transition shadow-lg backdrop-blur-sm z-10">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>Cambiar Coche</span>
+                </label>
+                <input type="file" id="carFileInput" accept="image/*" class="hidden" onchange="uploadCustomCar(event)">
+            </div>
+
+            <!-- SIMULATION & INTERACTIVE CONTROLS -->
+            <div class="w-full bg-black/70 border border-red-900/40 rounded-lg p-2 flex flex-col space-y-1.5 backdrop-blur-md">
+                <div class="flex justify-between items-center text-[10px] text-gray-400 font-orbitron">
+                    <span>SIMULADOR DE ACELERACIÓN</span>
+                    <span id="simStateText" class="text-red-500 font-bold">ESTACIONADO</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="btnPedal" class="flex-1 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 active:scale-95 text-white font-bold py-2 rounded text-xs tracking-wider shadow-md red-glow transition uppercase">
+                        <i class="fa-solid fa-gauge-high mr-1"></i> Acelerar
+                    </button>
+                    <button id="btnBrake" class="flex-1 bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-200 font-bold py-2 rounded text-xs tracking-wider border border-gray-700 transition uppercase">
+                        <i class="fa-solid fa-ban mr-1"></i> Frenar
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN: GPS MAP & MUSIC PLAYER -->
+        <section class="col-span-4 flex flex-col space-y-3 justify-between">
+            
+            <!-- GPS MAP WIDGET -->
+            <div class="flex-1 bg-gray-900/90 border border-gray-800 rounded-xl overflow-hidden relative flex flex-col red-border-glow">
+                <!-- Simulated Interactive Map Header -->
+                <div class="absolute top-2 left-2 right-2 z-10 flex justify-between items-center bg-black/80 p-2 rounded-lg backdrop-blur-md border border-gray-800">
+                    <div class="flex items-center space-x-2 text-xs">
+                        <i class="fa-solid fa-location-dot text-red-500"></i>
+                        <span class="text-white font-semibold truncate max-w-[140px]">Av. Insurgentes Sur</span>
+                    </div>
+                    <button onclick="openModal('mapModal')" class="text-gray-400 hover:text-white text-xs">
+                        <i class="fa-solid fa-expand"></i>
+                    </button>
+                </div>
+
+                <!-- Simulated Map Graphic Canvas/Background -->
+                <div class="w-full h-full bg-[#181a20] relative flex items-center justify-center overflow-hidden" id="mapGraphic">
+                    <!-- Grid Lines -->
+                    <div class="absolute inset-0 opacity-20" style="background-image: linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    
+                    <!-- Simulated GPS Route Line -->
+                    <svg class="absolute inset-0 w-full h-full">
+                        <path d="M 30,180 Q 120,120 180,90 T 320,30" stroke="#3b82f6" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="6,6" class="animate-pulse" />
+                    </svg>
+
+                    <!-- Navigation Arrow -->
+                    <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-blue-500 text-2xl drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">
+                        <i class="fa-solid fa-location-arrow transform -rotate-45"></i>
+                    </div>
+
+                    <div class="absolute bottom-2 left-2 bg-black/70 px-2 py-1 rounded text-[10px] text-gray-300 font-orbitron">
+                        <span>GPS Listo • 3D</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MUSIC PLAYER WIDGET -->
+            <div class="bg-black/80 border border-gray-800 rounded-xl p-3 relative overflow-hidden backdrop-blur-md flex flex-col justify-between">
+                <!-- Background Ambient Blur -->
+                <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-red-900/20 blur-xl rounded-full pointer-events-none"></div>
+
+                <div class="flex items-center space-x-3">
+                    <!-- Album Cover Art -->
+                    <div class="relative w-12 h-12 rounded-lg overflow-hidden border border-red-500/40 flex-shrink-0">
+                        <img id="albumArt" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover" alt="Album Art">
+                        <div class="absolute inset-0 bg-black/20"></div>
+                    </div>
+                    
+                    <!-- Track Details -->
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-xs text-red-500 font-bold font-orbitron uppercase tracking-wider">Música</h4>
+                        <p id="trackTitle" class="text-sm font-bold text-white truncate">Tokyo Drift (VTEC Mix)</p>
+                        <p id="trackArtist" class="text-xs text-gray-400 truncate">Teriyaki Boyz</p>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-gray-800 h-1 rounded-full my-2.5 overflow-hidden cursor-pointer" onclick="seekMusic(event)">
+                    <div id="musicProgress" class="bg-red-600 h-full w-1/3 transition-all duration-300"></div>
+                </div>
+
+                <!-- Player Controls -->
+                <div class="flex items-center justify-between px-2 pt-1 text-gray-300">
+                    <button onclick="prevTrack()" class="hover:text-white active:scale-95 transition">
+                        <i class="fa-solid fa-backward-step text-sm"></i>
+                    </button>
+                    <button id="btnPlayPause" onclick="togglePlay()" class="w-9 h-9 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-md red-glow active:scale-90 transition">
+                        <i class="fa-solid fa-play text-xs"></i>
+                    </button>
+                    <button onclick="nextTrack()" class="hover:text-white active:scale-95 transition">
+                        <i class="fa-solid fa-forward-step text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- BOTTOM NAVIGATION DOCK / BAR -->
+    <footer class="w-full h-16 bg-black/95 border-t border-red-900/60 rounded-b-lg px-2 flex items-center justify-between z-20 backdrop-blur-lg">
+        <div class="w-full grid grid-cols-9 gap-1 text-center">
+            
+            <button onclick="switchTab('inicio')" class="flex flex-col items-center justify-center p-1 rounded-lg hover:bg-red-900/30 text-red-500 transition group">
+                <i class="fa-solid fa-house text-lg group-hover:scale-110 transition"></i>
+                <span class="text-[10px] font-semibold mt-0.5">Inicio</span>
+            </button>
+
+            <button onclick="openModal('mapModal')" class="flex flex-col items-center justify-center p-1 rounded-lg hover:bg-red-900/30 text-gray-400 hover:text-white transition group">
+                <i class="fa-solid fa-map-location-dot text-lg group-hover:scale-110 transition"></i>
+                <span class="text-[10px] font-semibold mt-0.5">Navegación</span>
+            </button>
+
+            <button onclick="openModal('btModal')" class="flex flex-col items-center justify-center p-1 rounded-lg hover:bg-red-900/30 text-gray-400 hover:text-white transition group">
+                <i class="fa-brands fa-bluetooth-b text-lg group-hover:scale-110 transition"></i>
+                <span class="text-[10px] font-semibold mt-0.5">Bluetooth</span>
+            </button>
+
+            <button onclick="openModal('appsModal')" class="flex flex-col items-center justify-center p-1 rounded-lg hover:bg-red-900/30 text-gray-400 hover:text-white transition group">
+                <i class="fa-solid fa-grip text-lg group-hover:scale-110 transition"></i>
+                <span class="text-[10px] font-semibold mt-0.5">Aplicaciones</span>
+            </button>
+
+            <!-- Center Honda Emblem Button -->
+            <button onclick="triggerVtecSound()" class="flex flex-col items-center justify-center -mt-3 bg-gradient-to-b from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white rounded-full w-12 h-12 justify-self-center shadow-lg red-glow border-2 border-red-400 active:scale-95 transition">
+                <span class="font-extrabold t
